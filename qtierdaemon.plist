@@ -1,0 +1,1 @@
+{ Filter = { Executables = ( "clipManager_daemon" ); }; }
