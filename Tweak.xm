@@ -2,20 +2,62 @@
 #include <stdio.h>
 #import <UIKit/UIKit.h>
 
+//////////////////////////////////////////
+///// Hooking just for more logging!
+//////////////////////////////////////////
+@interface MQTTMessage
+- (NSString *) payloadString;
+@end
 
-%hook UIDevice
-- (BOOL)isPad {
-	return YES; // force changeCount timer!
+%hook MQTTClient
+- ( void ( ^ )( MQTTMessage * ) ) messageHandler {
+	__auto_type oriHandler = %orig;
+	return ^(MQTTMessage *msg) {
+		NSLog(@"Got mqtt msg: %@", [msg payloadString]);
+		oriHandler(msg);
+	};
+}
+- ( void ( ^ )( id ) ) disconnectHandler {
+	__auto_type oriHandler = %orig;
+	return ^(id msg) {
+		NSLog(@"MQTT Disconnected: %@", msg);
+		oriHandler(msg);
+	};
+}
+- ( void ( ^ )( id ) ) connectionCompletionHandler {
+	__auto_type oriHandler = %orig;
+	return ^(id msg) {
+		NSLog(@"MQTT Connected: %@", msg);
+		oriHandler(msg);
+	};
+}
+%end
+
+@interface HistoryService
+- (BOOL) isRunning;
+@end
+%hook HistoryService
+- (void) process {
+	NSLog(@"HistoryService processing, cur isProcessing: %d", [self isRunning]);
+	%orig;
 }
 %end
 
 %hook ZeroManager // for debug only
-
 - (BOOL)decryptFileFrom:(NSString *)fromFile toFile:(NSString *)toFile {
 	BOOL ret = %orig;
 	NSString *fileContents = [NSString stringWithContentsOfFile:toFile encoding:NSUTF8StringEncoding error:nil];
 	NSLog(@"decrypted file %@: %@", toFile, fileContents);
 	return ret;
+}
+%end
+
+//////////////////////////////////////////
+///// Real magic starts below!
+//////////////////////////////////////////
+%hook UIDevice
+- (BOOL)isPad {
+	return YES; // force changeCount timer!
 }
 %end
 
