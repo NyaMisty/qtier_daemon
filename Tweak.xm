@@ -88,7 +88,7 @@ void Init() {
 
 	NSLog(@"adding qtier observer");
 	[[NSNotificationCenter defaultCenter] 
-		addObserver:[%c(ClipManager) sharedInstance] selector:@selector(historyDownloaded:) name:@"ALL_FILE_DOWNLOAD_DONE" object:nil];
+		addObserver:[%c(ClipManager) sharedInstance] selector:@selector(historyDownloaded:) name:@"FILE_DOWNLOAD_DONE" object:nil];
 
 	NSLog(@"finish init!");
 }
